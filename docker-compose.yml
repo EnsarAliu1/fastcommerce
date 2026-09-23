@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: fastcommerce_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fastcommerce
+      POSTGRES_PASSWORD: fastcommerce
+      POSTGRES_DB: fastcommerce
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
