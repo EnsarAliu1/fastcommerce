@@ -9,6 +9,8 @@ class ProductCreate(BaseModel):
 
     category_id: int
 
+    brand_id: int
+
     name: str = Field(
         min_length=2,
         max_length=100
@@ -55,6 +57,8 @@ class ProductCreate(BaseModel):
 class ProductUpdate(BaseModel):
 
     category_id: int | None = None
+
+    brand_id: int | None = None
 
     name: str | None = Field(
         default=None,
@@ -116,6 +120,16 @@ class CategoryResponse(BaseModel):
     slug: str
 
 
+class BrandResponse(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True
+    )
+
+    id: int
+    name: str
+    slug: str
+
+
 class ProductResponse(BaseModel):
     model_config = ConfigDict(
         from_attributes=True
@@ -123,6 +137,7 @@ class ProductResponse(BaseModel):
 
     id: int
     category_id: int
+    brand_id: int
     name: str
     description: str
     price: Decimal
@@ -167,7 +182,6 @@ class CategoryCreate(BaseModel):
 
 
 class CategoryUpdate(BaseModel):
-
     name: str | None = Field(
         default=None,
         min_length=2,
@@ -176,14 +190,19 @@ class CategoryUpdate(BaseModel):
 
     @field_validator("name")
     @classmethod
-    def validate_name(cls, value: str | None) -> str | None:
+    def validate_name(
+        cls,
+        value: str | None
+    ) -> str | None:
         if value is None:
             return value
 
         value = value.strip()
 
         if not value:
-            raise ValueError("Name cannot be empty")
+            raise ValueError(
+                "Name cannot be empty"
+            )
 
         return value
 
@@ -195,10 +214,108 @@ class CategoryUpdate(BaseModel):
 
     @field_validator("slug")
     @classmethod
+    def validate_slug(
+        cls,
+        value: str | None
+    ) -> str | None:
+        if value is None:
+            return value
+
+        value = value.strip().lower()
+
+        if not re.fullmatch(
+            r"^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            value
+        ):
+            raise ValueError(
+                "Slug must contain lowercase letters, numbers and hyphens"
+            )
+
+        return value
+
+
+class BrandCreate(BaseModel):
+
+    name: str = Field(
+        min_length=2,
+        max_length=100
+    )
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, value: str) -> str:
+        value = value.strip()
+
+        if not value:
+            raise ValueError("Name cannot be empty")
+
+        return value
+
+    slug: str = Field(
+        min_length=3,
+        max_length=50
+    )
+
+    @field_validator("slug")
+    @classmethod
     def validate_slug(cls, value: str) -> str:
-        value = value.strip().upper()
+        value = value.strip().lower()
 
         if not re.fullmatch(r"^[a-z0-9]+(?:-[a-z0-9]+)*$", value):
+            raise ValueError(
+                "Slug must contain lowercase letters, numbers and hyphens"
+            )
+
+        return value
+
+
+class BrandUpdate(BaseModel):
+    name: str | None = Field(
+        default=None,
+        min_length=2,
+        max_length=100
+    )
+
+    field_validator("name")
+
+    @classmethod
+    def validate_name(
+        cls,
+        value: str | None
+    ) -> str | None:
+        if value is None:
+            return value
+
+        value = value.strip()
+
+        if not value:
+            raise ValueError(
+                "Name cannot be empty"
+            )
+
+        return value
+
+    slug: str | None = Field(
+        default=None,
+        min_length=3,
+        max_length=50
+    )
+
+    @field_validator("slug")
+    @classmethod
+    def validate_slug(
+        cls,
+        value: str | None
+    ) -> str | None:
+        if value is None:
+            return value
+
+        value = value.strip().lower()
+
+        if not re.fullmatch(
+            r"^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            value
+        ):
             raise ValueError(
                 "Slug must contain lowercase letters, numbers and hyphens"
             )

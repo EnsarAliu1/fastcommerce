@@ -110,7 +110,7 @@ def partial_update_category(
     return category
 
 
-@router.delete("/{category_id}", staus_code=204)
+@router.delete("/{category_id}", status_code=204)
 def delete_category(
     category_id: int,
     db: Session = Depends(get_db)
@@ -122,7 +122,7 @@ def delete_category(
     if not category:
         raise HTTPException(
             status_code=404,
-            delail="Category not found"
+            detail="Category not found"
         )
 
     if category.products:
