@@ -43,7 +43,8 @@ def get_products(
     statement = (
         select(models.Product)
         .options(
-            selectinload(models.Product.category)
+            selectinload(models.Product.category),
+            selectinload(models.Product.brand)
         )
     )
 
@@ -60,7 +61,8 @@ def get_product(
     statement = (
         select(models.Product)
         .options(
-            selectinload(models.Product.category)
+            selectinload(models.Product.category),
+            selectinload(models.Product.brand)
         )
         .where(
             models.Product.id == product_id

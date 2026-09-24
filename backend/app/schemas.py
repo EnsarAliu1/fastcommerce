@@ -110,6 +110,20 @@ class ProductUpdate(BaseModel):
         return value
 
 
+class ProductVariantResponse(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True
+    )
+
+    id: int
+    product_id: int
+    sku: str
+    price: Decimal
+    stock_quantity: int
+    size: str | None
+    color: str | None
+
+
 class CategoryResponse(BaseModel):
     model_config = ConfigDict(
         from_attributes=True
@@ -277,8 +291,7 @@ class BrandUpdate(BaseModel):
         max_length=100
     )
 
-    field_validator("name")
-
+    @field_validator("name")
     @classmethod
     def validate_name(
         cls,
@@ -322,3 +335,87 @@ class BrandUpdate(BaseModel):
             )
 
         return value
+
+
+class ProductVariantCreate(BaseModel):
+
+    product_id: int
+
+    sku: str = Field(
+        min_length=3,
+        max_length=50
+    )
+
+    @field_validator("sku")
+    @classmethod
+    def validate_sku(cls, value: str) -> str:
+        value = value.strip().upper()
+
+        if not re.fullmatch(r"^[A-Z]{3}-\d{3}$", value):
+            raise ValueError(
+                "SKU must have format ABC-123"
+            )
+
+        return value
+
+    price: Decimal = Field(
+        gt=0
+    )
+
+    stock_quantity: int = Field(
+        default=0,
+        ge=0
+    )
+
+    size: str = Field(
+        default=None,
+        max_length=100
+    )
+
+    color: str = Field(
+        default=None,
+        max_length=100
+    )
+
+
+class ProductVariantUpdate(BaseModel):
+
+    product_id: int | None = None
+
+    sku: str | None = Field(
+        default=None,
+        min_length=3,
+        max_length=50
+    )
+
+    @field_validator("sku")
+    @classmethod
+    def validate_sku(cls, value: str | None) -> str | None:
+        value = value.strip().upper()
+
+        if not re.fullmatch(r"^[A-Z]{3}-\d{3}$", value):
+            raise ValueError(
+                "SKU must have format ABC-123"
+            )
+
+        return value
+
+    price: Decimal | None = Field(
+        default=None,
+        gt=0
+    )
+
+    stock_quantity: int | None = Field(
+        default=None,
+        ge=0
+    )
+
+    size: str | None = Field(
+        default=None,
+        max_length=100
+    )
+
+    color: str | None = Field(
+        default=None,
+        max_length=100
+    )

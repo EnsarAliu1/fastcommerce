@@ -6,6 +6,50 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
 
+class ProductVariant(Base):
+    __tablename__ = "product_variants"
+
+    id: Mapped[int] = mapped_column(
+        primary_key=True,
+        index=True
+    )
+
+    product_id: Mapped[int] = mapped_column(
+        ForeignKey("products.id"),
+        nullable=False
+    )
+
+    sku: Mapped[str] = mapped_column(
+        String(100),
+        unique=True,
+        nullable=False
+    )
+
+    price: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2),
+        nullable=False
+    )
+
+    stock_quantity: Mapped[int] = mapped_column(
+        default=0,
+        nullable=False
+    )
+
+    size: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True
+    )
+
+    color: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True
+    )
+
+    product: Mapped["Product"] = relationship(
+        back_populates="variants"
+    )
+
+
 class Brand(Base):
     __tablename__ = "brands"
 
@@ -101,4 +145,8 @@ class Product(Base):
 
     brand: Mapped["Brand"] = relationship(
         back_populates="products"
+    )
+
+    variants: Mapped[list["ProductVariant"]] = relationship(
+        back_populates="product"
     )
