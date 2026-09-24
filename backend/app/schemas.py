@@ -144,6 +144,7 @@ class ProductResponse(BaseModel):
     in_stock: bool
     sku: str
     category: CategoryResponse
+    brand: BrandResponse
 
 
 class CategoryCreate(BaseModel):

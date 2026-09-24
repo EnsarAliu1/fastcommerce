@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from app.services.categories import get_category_or_404
+from app.services.brands import get_brand_or_404
 from app.services.db import commit_or_conflict
 
 
@@ -21,6 +22,8 @@ def create_product(
     db: Session = Depends(get_db)
 ):
     get_category_or_404(product.category_id, db)
+
+    get_brand_or_404(product.brand_id, db)
 
     new_product = models.Product(**product.model_dump())
 
@@ -93,6 +96,8 @@ def update_product(
 
     get_category_or_404(updated_product.category_id, db)
 
+    get_brand_or_404(updated_product.brand_id, db)
+
     update_data = updated_product.model_dump()
 
     for key, value in update_data.items():
@@ -126,6 +131,12 @@ def partial_update_product(
     if "category_id" in update_data:
         get_category_or_404(
             update_data["category_id"],
+            db
+        )
+
+    if "brand_id" in update_data:
+        get_brand_or_404(
+            update_data["brand_id"],
             db
         )
 
