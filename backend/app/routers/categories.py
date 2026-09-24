@@ -3,7 +3,6 @@ from app.database import get_db
 from app import models
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.exc import IntegrityError
 from app.services.db import commit_or_conflict
 from app.services.categories import get_category_or_404
 
