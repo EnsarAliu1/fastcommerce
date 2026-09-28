@@ -44,7 +44,8 @@ def get_products(
         select(models.Product)
         .options(
             selectinload(models.Product.category),
-            selectinload(models.Product.brand)
+            selectinload(models.Product.brand),
+            selectinload(models.Product.variants)
         )
     )
 

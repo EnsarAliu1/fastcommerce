@@ -34,8 +34,6 @@ class ProductCreate(BaseModel):
         gt=0
     )
 
-    in_stock: bool = True
-
     sku: str = Field(
         min_length=3,
         max_length=50
@@ -89,8 +87,6 @@ class ProductUpdate(BaseModel):
         gt=0
     )
 
-    in_stock: bool | None = None
-
     sku: str | None = Field(
         default=None,
         min_length=3,
@@ -122,6 +118,7 @@ class ProductVariantResponse(BaseModel):
     stock_quantity: int
     size: str | None
     color: str | None
+    is_in_stock: bool
 
 
 class CategoryResponse(BaseModel):
@@ -155,10 +152,10 @@ class ProductResponse(BaseModel):
     name: str
     description: str
     price: Decimal
-    in_stock: bool
     sku: str
     category: CategoryResponse
     brand: BrandResponse
+    is_in_stock: bool
 
 
 class CategoryCreate(BaseModel):

@@ -35,6 +35,10 @@ class ProductVariant(Base):
         nullable=False
     )
 
+    @property
+    def is_in_stock(self) -> bool:
+        return self.stock_quantity > 0
+
     size: Mapped[str | None] = mapped_column(
         String(100),
         nullable=True
@@ -128,10 +132,12 @@ class Product(Base):
         Numeric(10, 2)
     )
 
-    in_stock: Mapped[bool] = mapped_column(
-        Boolean,
-        default=True
-    )
+    @property
+    def is_in_stock(self) -> bool:
+        return any(
+            variant.stock_quantity > 0
+            for variant in self.variants
+        )
 
     sku: Mapped[str] = mapped_column(
         String(100),
