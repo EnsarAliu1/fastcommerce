@@ -1,4 +1,4 @@
-from app.schemas import ProductVariantResponse, ProductVariantCreate, ProductVariantUpdate
+from app.schemas import ProductVariantResponse, ProductVariantCreate, ProductVariantUpdate, StockAdjustment
 from app.db.session import get_db
 from app import models
 from sqlalchemy.orm import Session, selectinload
@@ -154,3 +154,57 @@ def delete_variant(
 
     db.delete(variant)
     db.commit()
+
+
+@router.post("/{variant_id}/increase-stock", response_model=ProductVariantResponse)
+def increase_stock(
+    variant_id: int,
+    adjustment: StockAdjustment,
+    db: Session = Depends(get_db)
+):
+    variant = db.query(models.ProductVariant).filter(
+        models.ProductVariant.id == variant_id
+    ).first()
+
+    if not variant:
+        raise HTTPException(
+            status_code=404,
+            detail="Product variant not found"
+        )
+
+    variant.stock_quantity += adjustment.quantity
+
+    db.commit()
+    db.refresh(variant)
+
+    return variant
+
+
+@router.post("/{variant_id}/decrease-stock", response_model=ProductVariantResponse)
+def decrease_stock(
+    variant_id: int,
+    adjustment: StockAdjustment,
+    db: Session = Depends(get_db)
+):
+    variant = db.query(models.ProductVariant).filter(
+        models.ProductVariant.id == variant_id
+    ).first()
+
+    if not variant:
+        raise HTTPException(
+            status_code=404,
+            detail="Product variant not found"
+        )
+
+    if adjustment.quantity > variant.stock_quantity:
+        raise HTTPException(
+            status_code=409,
+            detail="Insufficient stock"
+        )
+
+    variant.stock_quantity -= adjustment.quantity
+
+    db.commit()
+    db.refresh(variant)
+
+    return variant

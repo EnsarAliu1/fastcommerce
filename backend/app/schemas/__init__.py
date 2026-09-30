@@ -20,4 +20,5 @@ from app.schemas.variant import (
     ProductVariantCreate,
     ProductVariantUpdate,
     ProductVariantResponse,
+    StockAdjustment
 )
