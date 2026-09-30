@@ -1,5 +1,5 @@
 from app.schemas import BrandCreate, BrandResponse, BrandUpdate
-from app.database import get_db
+from app.db.session import get_db
 from app import models
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, HTTPException

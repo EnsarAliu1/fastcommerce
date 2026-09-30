@@ -111,3 +111,7 @@ class ProductVariantResponse(BaseModel):
     size: str | None
     color: str | None
     is_in_stock: bool
+
+
+class StockAdjustment(BaseModel):
+    quantity: int = Field(gt=0)

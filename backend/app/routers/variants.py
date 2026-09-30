@@ -1,5 +1,5 @@
 from app.schemas import ProductVariantResponse, ProductVariantCreate, ProductVariantUpdate
-from app.database import get_db
+from app.db.session import get_db
 from app import models
 from sqlalchemy.orm import Session, selectinload
 from fastapi import APIRouter, Depends, HTTPException

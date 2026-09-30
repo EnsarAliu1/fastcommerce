@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.schemas.brand import BrandResponse
 from app.schemas.category import CategoryResponse
+from app.schemas.variant import ProductVariantResponse
 
 
 class ProductCreate(BaseModel):
@@ -134,5 +135,6 @@ class ProductResponse(BaseModel):
 
     category: CategoryResponse
     brand: BrandResponse
+    variants: list[ProductVariantResponse]
 
     is_in_stock: bool

@@ -1,5 +1,5 @@
 from app.schemas import ProductResponse, ProductCreate, ProductUpdate
-from app.database import get_db
+from app.db.session import get_db
 from app import models
 from sqlalchemy.orm import Session, selectinload
 from fastapi import APIRouter, Depends, HTTPException
@@ -63,7 +63,8 @@ def get_product(
         select(models.Product)
         .options(
             selectinload(models.Product.category),
-            selectinload(models.Product.brand)
+            selectinload(models.Product.brand),
+            selectinload(models.Product.variants)
         )
         .where(
             models.Product.id == product_id
