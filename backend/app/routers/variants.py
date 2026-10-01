@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from app.services.products import get_product_or_404
 from app.services.db import commit_or_conflict
+from sqlalchemy import update
 
 router = APIRouter(
     prefix="/variants",
@@ -35,12 +36,7 @@ def create_variant(
 def get_variants(
     db: Session = Depends(get_db)
 ):
-    statement = (
-        select(models.ProductVariant)
-        .options(
-            statement=select(models.ProductVariant)
-        )
-    )
+    statement = select(models.ProductVariant)
 
     variants = db.scalars(statement).all()
 
@@ -186,25 +182,52 @@ def decrease_stock(
     adjustment: StockAdjustment,
     db: Session = Depends(get_db)
 ):
-    variant = db.query(models.ProductVariant).filter(
-        models.ProductVariant.id == variant_id
-    ).first()
+    statement = (
+        update(models.ProductVariant)
+        .where(
+            models.ProductVariant.id == variant_id,
+            models.ProductVariant.stock_quantity >= adjustment.quantity
+        )
+        .values(
+            stock_quantity=(
+                models.ProductVariant.stock_quantity
+                - adjustment.quantity
+            )
+        )
+        .returning(models.ProductVariant.id)
+    )
 
-    if not variant:
-        raise HTTPException(
-            status_code=404,
-            detail="Product variant not found"
+    result = db.execute(statement)
+    updated_variant_id = result.scalar_one_or_none()
+
+    if updated_variant_id is None:
+        variant = db.get(
+            models.ProductVariant,
+            variant_id
         )
 
-    if adjustment.quantity > variant.stock_quantity:
+        if variant is None:
+            db.rollback()
+
+            raise HTTPException(
+                status_code=404,
+                detail="Product variant not found"
+            )
+
+        db.rollback()
+
         raise HTTPException(
             status_code=409,
             detail="Insufficient stock"
         )
 
-    variant.stock_quantity -= adjustment.quantity
-
     db.commit()
+
+    variant = db.get(
+        models.ProductVariant,
+        updated_variant_id
+    )
+
     db.refresh(variant)
 
     return variant
