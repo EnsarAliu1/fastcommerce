@@ -158,20 +158,35 @@ def increase_stock(
     adjustment: StockAdjustment,
     db: Session = Depends(get_db)
 ):
-    variant = db.query(models.ProductVariant).filter(
-        models.ProductVariant.id == variant_id
-    ).first()
+    statement = (
+        update(models.ProductVariant)
+        .where(models.ProductVariant.id == variant_id)
+        .values(
+            stock_quantity=(
+                models.ProductVariant.stock_quantity
+                + adjustment.quantity
+            )
+        )
+        .returning(models.ProductVariant.id)
+    )
 
-    if not variant:
+    result = db.execute(statement)
+    updated_variant__id = result.scalar_one_or_none()
+
+    if updated_variant__id is None:
+        db.rollback()
+
         raise HTTPException(
             status_code=404,
             detail="Product variant not found"
         )
 
-    variant.stock_quantity += adjustment.quantity
-
     db.commit()
-    db.refresh(variant)
+
+    variant = db.get(
+        models.ProductVariant,
+        updated_variant__id
+    )
 
     return variant
 
