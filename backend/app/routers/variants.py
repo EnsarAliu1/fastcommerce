@@ -50,9 +50,6 @@ def get_variant(
 ):
     statement = (
         select(models.ProductVariant)
-        .options(
-            statement=select(models.ProductVariant)
-        )
         .where(
             models.ProductVariant.id == variant_id
         )
