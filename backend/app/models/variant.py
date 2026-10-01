@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from sqlalchemy import ForeignKey, Numeric, String
+from sqlalchemy import ForeignKey, Numeric, String, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -52,3 +52,10 @@ class ProductVariant(Base):
     @property
     def is_in_stock(self) -> bool:
         return self.stock_quantity > 0
+
+    __table_args__ = (
+        CheckConstraint(
+            "stock_quantity >= 0",
+            name="ck_product_variants_stock_quantity_non_negative"
+        ),
+    )
