@@ -71,3 +71,47 @@ def create_reservation(
     db.refresh(reservation)
 
     return reservation
+
+
+@router.post("/{reservation_id}/release")
+def reservation_release(
+    reservation_id: int,
+    db: Session = Depends(get_db)
+):
+    reservation = db.query(models.StockReservation).filter(
+        models.StockReservation.id == reservation_id
+    ).first()
+
+    if not reservation:
+        raise HTTPException(
+            status_code=404,
+            detail="Reservation not found"
+        )
+
+    if reservation.status != "active":
+        raise HTTPException(
+            status_code=409,
+            detail="Reservation is not active"
+        )
+
+    statement = (
+        update(models.ProductVariant)
+        .where(
+            models.ProductVariant.id == reservation.variant_id
+        )
+        .values(
+            stock_quantity=(
+                models.ProductVariant.stock_quantity
+                + reservation.quantity
+            )
+        )
+    )
+
+    db.execute(statement)
+
+    reservation.status = "released"
+
+    db.commit()
+    db.refresh(reservation)
+
+    return reservation
