@@ -59,3 +59,7 @@ class ProductVariant(Base):
             name="ck_product_variants_stock_quantity_non_negative"
         ),
     )
+
+    reservations: Mapped[list["StockReservation"]] = relationship(
+        back_populates="variant"
+    )
