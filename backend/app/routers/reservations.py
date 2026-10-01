@@ -115,3 +115,32 @@ def reservation_release(
     db.refresh(reservation)
 
     return reservation
+
+
+@router.post("/{reservation_id}/consume")
+def reservation_consume(
+    reservation_id: int,
+    db: Session = Depends(get_db)
+):
+    reservation = db.query(models.StockReservation).filter(
+        models.StockReservation.id == reservation_id
+    ).first()
+
+    if not reservation:
+        raise HTTPException(
+            status_code=404,
+            detail="Reservation not found"
+        )
+
+    if reservation.status != "active":
+        raise HTTPException(
+            status_code=409,
+            detail="Reservation is not active"
+        )
+
+    reservation.status = "consumed"
+
+    db.commit()
+    db.refresh(reservation)
+
+    return reservation
