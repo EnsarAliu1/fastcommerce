@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.schemas.reservation import StockReservationCreate
+from app.schemas.reservation import StockReservationCreate, StockReservationResponse
 from app.services import reservations as reservation_service
 
 
@@ -12,7 +12,7 @@ router = APIRouter(
 )
 
 
-@router.post("/{variant_id}", status_code=201)
+@router.post("/{variant_id}", status_code=201, response_model=StockReservationResponse)
 def create_reservation(
     variant_id: int,
     data: StockReservationCreate,
@@ -25,7 +25,7 @@ def create_reservation(
     )
 
 
-@router.post("/{reservation_id}/release")
+@router.post("/{reservation_id}/release", response_model=StockReservationResponse)
 def reservation_release(
     reservation_id: int,
     db: Session = Depends(get_db)
@@ -36,7 +36,7 @@ def reservation_release(
     )
 
 
-@router.post("/{reservation_id}/consume")
+@router.post("/{reservation_id}/consume", response_model=StockReservationResponse)
 def reservation_consume(
     reservation_id: int,
     db: Session = Depends(get_db)
@@ -47,7 +47,7 @@ def reservation_consume(
     )
 
 
-@router.post("/{reservation_id}/expire")
+@router.post("/{reservation_id}/expire", response_model=StockReservationResponse)
 def reservation_expire(
     reservation_id: int,
     db: Session = Depends(get_db)
