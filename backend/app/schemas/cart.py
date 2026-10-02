@@ -25,3 +25,7 @@ class CartResponse(BaseModel):
     id: int
     status: str
     items: list[CartItemResponse]
+
+
+class CartItemQuantityUpdate(BaseModel):
+    quantity: int = Field(gt=0)
