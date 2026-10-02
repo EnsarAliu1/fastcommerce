@@ -63,10 +63,23 @@ def add_item_to_cart(
         None
     )
 
+    current_quantity = (
+        existing_variant.quantity
+        if existing_variant
+        else 0
+    )
+
+    requested_total = current_quantity + quantity
+
+    if requested_total > variant.stock_quantity:
+        raise HTTPException(
+            status_code=409,
+            detail="Insufficient stock"
+        )
+
     if existing_variant:
         existing_variant.quantity += quantity
 
-    # nese jo krijo cart item
     if not existing_variant:
         cart_item = models.CartItem(
             cart_id=cart.id,
@@ -74,6 +87,46 @@ def add_item_to_cart(
             quantity=quantity
         )
         db.add(cart_item)
+
+    db.commit()
+    db.refresh(cart)
+
+    return cart
+
+
+def update_cart_item_quantity(
+        cart_id: int,
+        item_id: int,
+        quantity: int,
+        db: Session
+):
+    cart = get_cart_or_404(cart_id, db)
+
+    if cart.status != "active":
+        raise HTTPException(
+            status_code=409,
+            detail="Cart is not active"
+        )
+
+    cart_item = db.query(models.CartItem).filter(
+        models.CartItem.id == item_id,
+        models.CartItem.cart_id == cart_id
+    ).first()
+    if not cart_item:
+        raise HTTPException(
+            status_code=404,
+            detail="Cart item not found"
+        )
+    variant = db.get(
+        models.ProductVariant,
+        cart_item.variant_id
+    )
+    if quantity > variant.stock_quantity:
+        raise HTTPException(
+            status_code=409,
+            detail="Insufficient stock"
+        )
+    cart_item.quantity = quantity
 
     db.commit()
     db.refresh(cart)
