@@ -163,3 +163,40 @@ def remove_cart_item(
     db.refresh(cart)
 
     return cart
+
+
+def checkout_cart(
+        cart_id: int,
+        db: Session
+):
+    cart = get_cart_or_404(cart_id, db)
+
+    if cart.status != "active":
+        raise HTTPException(
+            status_code=409,
+            detail="Cart is not active"
+        )
+
+    if not cart.items:
+        raise HTTPException(
+            status_code=409,
+            detail="Cart is empty"
+        )
+
+    for item in cart.items:
+        variant = db.get(
+            models.ProductVariant,
+            item.variant_id
+        )
+
+        if not variant:
+            raise HTTPException(
+                status_code=404,
+                detail="Product variant not found"
+            )
+
+        if item.quantity > variant.stock_quantity:
+            raise HTTPException(
+                status_code=409,
+                detail="Insufficient stock"
+            )
