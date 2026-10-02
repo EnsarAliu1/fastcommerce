@@ -132,3 +132,34 @@ def update_cart_item_quantity(
     db.refresh(cart)
 
     return cart
+
+
+def remove_cart_item(
+        cart_id: int,
+        item_id: int,
+        db: Session
+):
+    cart = get_cart_or_404(cart_id, db)
+
+    if cart.status != "active":
+        raise HTTPException(
+            status_code=409,
+            detail="Cart item is not active"
+        )
+
+    cart_item = db.query(models.CartItem).filter(
+        models.CartItem.id == item_id,
+        models.CartItem.cart_id == cart_id
+    ).first()
+
+    if not cart_item:
+        raise HTTPException(
+            status_code=404,
+            detail="Cart is not active"
+        )
+
+    db.delete(cart_item)
+    db.commit()
+    db.refresh(cart)
+
+    return cart
