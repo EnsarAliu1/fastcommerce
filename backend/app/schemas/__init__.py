@@ -22,3 +22,11 @@ from app.schemas.variant import (
     ProductVariantResponse,
     StockAdjustment
 )
+
+from app.schemas.cart import (
+    CartItemResponse,
+    CartCreate,
+    CartItemCreate,
+    CartResponse,
+    ConfigDict
+)
