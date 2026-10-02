@@ -56,3 +56,29 @@ def reservation_expire(
         reservation_id,
         db
     )
+
+
+@router.get(
+    "/",
+    response_model=list[StockReservationResponse]
+)
+def get_reservations(
+    db: Session = Depends(get_db)
+):
+    return reservation_service.get_reservations(
+        db
+    )
+
+
+@router.get(
+    "/{reservation_id}",
+    response_model=StockReservationResponse
+)
+def get_reservation(
+    reservation_id: int,
+    db: Session = Depends(get_db)
+):
+    return reservation_service.get_reservation(
+        reservation_id,
+        db
+    )

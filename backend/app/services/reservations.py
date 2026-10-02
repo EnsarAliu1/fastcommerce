@@ -191,3 +191,21 @@ def expire_reservation(
     db.refresh(reservation)
 
     return reservation
+
+
+def get_reservations(
+        db: Session
+):
+    return db.query(
+        models.StockReservation
+    ).all()
+
+
+def get_reservation(
+        reservation_id: int,
+        db: Session
+):
+    return get_reservation_or_404(
+        reservation_id,
+        db
+    )
