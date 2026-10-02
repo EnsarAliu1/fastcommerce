@@ -1,5 +1,8 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import update
+
+from datetime import datetime, timedelta, timezone
 
 from app import models
 
@@ -195,8 +198,46 @@ def checkout_cart(
                 detail="Product variant not found"
             )
 
-        if item.quantity > variant.stock_quantity:
+        statement = (
+            update(models.ProductVariant)
+            .where(
+                models.ProductVariant.id == item.variant_id,
+                models.ProductVariant.stock_quantity >= item.quantity
+            )
+            .values(
+                stock_quantity=(
+                    models.ProductVariant.stock_quantity
+                    - item.quantity
+                )
+            )
+            .returning(models.ProductVariant.id)
+        )
+
+        result = db.execute(statement)
+        updated_variant_id = result.scalar_one_or_none()
+
+        if updated_variant_id is None:
+            db.rollback()
             raise HTTPException(
                 status_code=409,
                 detail="Insufficient stock"
             )
+
+        reservation = models.StockReservation(
+            variant_id=item.variant_id,
+            quantity=item.quantity,
+            status="active",
+            expires_at=(
+                datetime.now(timezone.utc)
+                + timedelta(minutes=15)
+            )
+        )
+
+        db.add(reservation)
+
+    cart.status = "checked_out"
+
+    db.commit()
+    db.refresh(cart)
+
+    return cart
