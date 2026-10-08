@@ -30,3 +30,8 @@ from app.schemas.cart import (
     CartResponse,
     ConfigDict
 )
+
+from app.schemas.order import (
+    OrderItemResponse,
+    OrderResponse
+)
