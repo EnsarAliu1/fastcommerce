@@ -84,3 +84,14 @@ def delete_item(
         item_id,
         db
     )
+
+
+@router.post("/{cart_id}/checkout", response_model=CartResponse)
+def checkout_cart(
+    cart_id: int,
+    db: Session = Depends(get_db)
+):
+    return carts_service.checkout_cart(
+        cart_id,
+        db
+    )
