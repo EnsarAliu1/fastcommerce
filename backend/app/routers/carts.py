@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.db import get_db
 from app.schemas.cart import CartItemCreate, CartItemQuantityUpdate, CartResponse
+from app.schemas.order import OrderResponse
 
 from app.services import carts as carts_service
 
@@ -45,10 +46,10 @@ def add_item(
     db: Session = Depends(get_db)
 ):
     return carts_service.add_item_to_cart(
-        cart_id,
-        data.variant_id,
-        data.quantity,
-        db
+        cart_id=cart_id,
+        db=db,
+        variant_id=data.variant_id,
+        quantity=data.quantity
     )
 
 
@@ -86,7 +87,7 @@ def delete_item(
     )
 
 
-@router.post("/{cart_id}/checkout", response_model=CartResponse)
+@router.post("/{cart_id}/checkout", response_model=OrderResponse)
 def checkout_cart(
     cart_id: int,
     db: Session = Depends(get_db)

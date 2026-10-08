@@ -6,6 +6,8 @@ from datetime import datetime, timedelta, timezone
 
 from app import models
 
+from decimal import Decimal
+
 
 def create_cart(
         db: Session
@@ -169,10 +171,13 @@ def remove_cart_item(
 
 
 def checkout_cart(
-        cart_id: int,
-        db: Session
+    cart_id: int,
+    db: Session
 ):
-    cart = get_cart_or_404(cart_id, db)
+    cart = get_cart_or_404(
+        cart_id,
+        db
+    )
 
     if cart.status != "active":
         raise HTTPException(
@@ -186,6 +191,16 @@ def checkout_cart(
             detail="Cart is empty"
         )
 
+    order = models.Order(
+        status="pending",
+        total_amount=Decimal("0.00")
+    )
+
+    db.add(order)
+    db.flush()
+
+    total_amount = Decimal("0.00")
+
     for item in cart.items:
         variant = db.get(
             models.ProductVariant,
@@ -193,6 +208,8 @@ def checkout_cart(
         )
 
         if not variant:
+            db.rollback()
+
             raise HTTPException(
                 status_code=404,
                 detail="Product variant not found"
@@ -218,10 +235,23 @@ def checkout_cart(
 
         if updated_variant_id is None:
             db.rollback()
+
             raise HTTPException(
                 status_code=409,
                 detail="Insufficient stock"
             )
+
+        line_total = variant.price * item.quantity
+
+        order_item = models.OrderItem(
+            order_id=order.id,
+            variant_id=item.variant_id,
+            quantity=item.quantity,
+            unit_price=variant.price,
+            line_total=line_total
+        )
+
+        db.add(order_item)
 
         reservation = models.StockReservation(
             variant_id=item.variant_id,
@@ -235,9 +265,12 @@ def checkout_cart(
 
         db.add(reservation)
 
+        total_amount += line_total
+
+    order.total_amount = total_amount
     cart.status = "checked_out"
 
     db.commit()
-    db.refresh(cart)
+    db.refresh(order)
 
-    return cart
+    return order
