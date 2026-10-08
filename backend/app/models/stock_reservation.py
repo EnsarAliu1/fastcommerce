@@ -20,6 +20,12 @@ class StockReservation(Base):
         index=True
     )
 
+    order_id: Mapped[int | None] = mapped_column(
+        ForeignKey("orders.id"),
+        nullable=True,
+        index=True
+    )
+
     quantity: Mapped[int] = mapped_column(
         nullable=False
     )
@@ -50,5 +56,9 @@ class StockReservation(Base):
     )
 
     variant: Mapped["ProductVariant"] = relationship(
+        back_populates="reservations"
+    )
+
+    order: Mapped["Order | None"] = relationship(
         back_populates="reservations"
     )

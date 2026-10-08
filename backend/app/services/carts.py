@@ -260,7 +260,8 @@ def checkout_cart(
             expires_at=(
                 datetime.now(timezone.utc)
                 + timedelta(minutes=15)
-            )
+            ),
+            order_id=order.id
         )
 
         db.add(reservation)
