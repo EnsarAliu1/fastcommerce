@@ -1,6 +1,6 @@
 from app.db.base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, DateTime, func, Enum
+from sqlalchemy import String, DateTime, func, Enum, ForeignKey
 from datetime import datetime
 
 
@@ -32,4 +32,14 @@ class Cart(Base):
 
     items: Mapped[list["CartItem"]] = relationship(
         back_populates="cart"
+    )
+
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"),
+        nullable=False,
+        index=True
+    )
+
+    user: Mapped["User"] = relationship(
+        back_populates="carts"
     )

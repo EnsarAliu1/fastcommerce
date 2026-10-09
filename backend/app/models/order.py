@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from sqlalchemy import Numeric, Enum, DateTime, func
+from sqlalchemy import Numeric, Enum, DateTime, func, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -45,4 +45,14 @@ class Order(Base):
 
     reservations: Mapped[list["StockReservation"]] = relationship(
         back_populates="order"
+    )
+
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"),
+        nullable=False,
+        index=True
+    )
+
+    user: Mapped["User"] = relationship(
+        back_populates="orders"
     )
