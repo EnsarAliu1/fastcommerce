@@ -1,7 +1,7 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from app import models
 from fastapi import HTTPException
-from sqlalchemy import update
+from sqlalchemy import update, select
 
 
 def get_order_or_404(
@@ -94,3 +94,21 @@ def cancel_order(
     db.refresh(order)
 
     return order
+
+
+def get_orders(
+    db: Session,
+    skip: int,
+    limit: int
+):
+    statement = (
+        select(models.Order)
+        .options(
+            selectinload(models.Order.items)
+        )
+        .order_by(models.Order.id.desc())
+        .offset(skip)
+        .limit(limit)
+    )
+
+    return db.scalars(statement).all()

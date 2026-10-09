@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.db import get_db
@@ -50,4 +50,17 @@ def cancel_order(
     return orders_service.cancel_order(
         order_id,
         db
+    )
+
+
+@router.get("/", response_model=list[OrderResponse])
+def get_orders(
+    db: Session = Depends(get_db),
+        skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=20, ge=1, le=100)
+):
+    return orders_service.get_orders(
+        db,
+        skip,
+        limit
     )
