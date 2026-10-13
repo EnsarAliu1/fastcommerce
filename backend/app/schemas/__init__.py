@@ -32,7 +32,7 @@ from app.modules.carts.schemas.cart import (
     ConfigDict
 )
 
-from app.schemas.order import (
+from app.modules.orders.schemas.order import (
     OrderItemResponse,
     OrderResponse
 )

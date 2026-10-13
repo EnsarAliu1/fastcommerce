@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.routers import orders
+from app.modules.orders.router import router as orders_router
 from app.modules.catalog.routers import (
     products,
     categories,
@@ -23,7 +23,7 @@ app.include_router(variants.router)
 app.include_router(inventory_router)
 app.include_router(stock_router)
 app.include_router(carts_router)
-app.include_router(orders.router)
+app.include_router(orders_router)
 
 
 @app.get("/")

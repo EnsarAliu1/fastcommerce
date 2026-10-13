@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.db import get_db
 from app.modules.carts.schemas.cart import CartItemCreate, CartItemQuantityUpdate, CartResponse
-from app.schemas.order import OrderResponse
+from app.modules.orders.schemas.order import OrderResponse
 
 from app.modules.carts.services import carts as carts_service
 
