@@ -24,7 +24,7 @@ from app.modules.catalog.schemas.variant import (
 
 from app.modules.inventory.schemas.stock import StockAdjustment
 
-from app.schemas.cart import (
+from app.modules.carts.schemas.cart import (
     CartItemResponse,
     CartCreate,
     CartItemCreate,
