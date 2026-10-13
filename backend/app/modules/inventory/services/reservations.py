@@ -3,7 +3,7 @@ from sqlalchemy import update
 
 from datetime import datetime, timezone, timedelta
 
-from app.schemas.reservation import StockReservationCreate
+from app.modules.inventory.schemas.reservation import StockReservationCreate
 
 from fastapi import HTTPException
 
