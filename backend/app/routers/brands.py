@@ -4,7 +4,7 @@ from app import models
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, HTTPException
 from app.services.db import commit_or_conflict
-from app.services.brands import get_brand_or_404
+from app.modules.catalog.services.brands import get_brand_or_404
 
 
 router = APIRouter(

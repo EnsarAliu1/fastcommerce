@@ -4,7 +4,7 @@ from app import models
 from sqlalchemy.orm import Session, selectinload
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
-from app.services.products import get_product_or_404
+from app.modules.catalog.services.products import get_product_or_404
 from app.services.db import commit_or_conflict
 from sqlalchemy import update
 

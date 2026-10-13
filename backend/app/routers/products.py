@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session, selectinload
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from app.services.categories import get_category_or_404
-from app.services.brands import get_brand_or_404
+from app.modules.catalog.services.categories import get_category_or_404
+from app.modules.catalog.services.brands import get_brand_or_404
 from app.services.db import commit_or_conflict
 
 
