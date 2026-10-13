@@ -5,7 +5,6 @@ from .variant import (
     ProductVariantCreate,
     ProductVariantResponse,
     ProductVariantUpdate,
-    StockAdjustment,
 )
 
 __all__ = [
@@ -21,5 +20,4 @@ __all__ = [
     "ProductVariantCreate",
     "ProductVariantResponse",
     "ProductVariantUpdate",
-    "StockAdjustment",
 ]

@@ -1,12 +1,11 @@
-from app.schemas import ProductVariantResponse, ProductVariantCreate, ProductVariantUpdate, StockAdjustment
+from app.schemas import ProductVariantResponse, ProductVariantCreate, ProductVariantUpdate
 from app.db.session import get_db
 from app import models
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from app.modules.catalog.services.products import get_product_or_404
 from app.services.db import commit_or_conflict
-from sqlalchemy import update
 
 router = APIRouter(
     prefix="/variants",
@@ -147,99 +146,3 @@ def delete_variant(
 
     db.delete(variant)
     db.commit()
-
-
-@router.post("/{variant_id}/increase-stock", response_model=ProductVariantResponse)
-def increase_stock(
-    variant_id: int,
-    adjustment: StockAdjustment,
-    db: Session = Depends(get_db)
-):
-    statement = (
-        update(models.ProductVariant)
-        .where(models.ProductVariant.id == variant_id)
-        .values(
-            stock_quantity=(
-                models.ProductVariant.stock_quantity
-                + adjustment.quantity
-            )
-        )
-        .returning(models.ProductVariant.id)
-    )
-
-    result = db.execute(statement)
-    updated_variant__id = result.scalar_one_or_none()
-
-    if updated_variant__id is None:
-        db.rollback()
-
-        raise HTTPException(
-            status_code=404,
-            detail="Product variant not found"
-        )
-
-    db.commit()
-
-    variant = db.get(
-        models.ProductVariant,
-        updated_variant__id
-    )
-
-    return variant
-
-
-@router.post("/{variant_id}/decrease-stock", response_model=ProductVariantResponse)
-def decrease_stock(
-    variant_id: int,
-    adjustment: StockAdjustment,
-    db: Session = Depends(get_db)
-):
-    statement = (
-        update(models.ProductVariant)
-        .where(
-            models.ProductVariant.id == variant_id,
-            models.ProductVariant.stock_quantity >= adjustment.quantity
-        )
-        .values(
-            stock_quantity=(
-                models.ProductVariant.stock_quantity
-                - adjustment.quantity
-            )
-        )
-        .returning(models.ProductVariant.id)
-    )
-
-    result = db.execute(statement)
-    updated_variant_id = result.scalar_one_or_none()
-
-    if updated_variant_id is None:
-        variant = db.get(
-            models.ProductVariant,
-            variant_id
-        )
-
-        if variant is None:
-            db.rollback()
-
-            raise HTTPException(
-                status_code=404,
-                detail="Product variant not found"
-            )
-
-        db.rollback()
-
-        raise HTTPException(
-            status_code=409,
-            detail="Insufficient stock"
-        )
-
-    db.commit()
-
-    variant = db.get(
-        models.ProductVariant,
-        updated_variant_id
-    )
-
-    db.refresh(variant)
-
-    return variant

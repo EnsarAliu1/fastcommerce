@@ -2,6 +2,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.db import get_db
+from app.modules.catalog.schemas.variant import ProductVariantResponse
+from app.modules.inventory.schemas.stock import StockAdjustment
+from app.modules.inventory.services import stock as stock_service
 from app.modules.inventory.schemas.reservation import StockReservationCreate, StockReservationResponse
 from app.modules.inventory.services import reservations as reservation_service
 
@@ -10,6 +13,29 @@ router = APIRouter(
     prefix="/reservations",
     tags=["Reservations"]
 )
+
+stock_router = APIRouter(
+    prefix="/variants",
+    tags=["Stock"]
+)
+
+
+@stock_router.post("/{variant_id}/increase-stock", response_model=ProductVariantResponse)
+def increase_stock(
+    variant_id: int,
+    adjustment: StockAdjustment,
+    db: Session = Depends(get_db)
+):
+    return stock_service.increase_stock(variant_id, adjustment, db)
+
+
+@stock_router.post("/{variant_id}/decrease-stock", response_model=ProductVariantResponse)
+def decrease_stock(
+    variant_id: int,
+    adjustment: StockAdjustment,
+    db: Session = Depends(get_db)
+):
+    return stock_service.decrease_stock(variant_id, adjustment, db)
 
 
 @router.post("/{variant_id}", status_code=201, response_model=StockReservationResponse)

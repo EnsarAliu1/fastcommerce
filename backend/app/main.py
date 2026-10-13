@@ -8,6 +8,7 @@ from app.modules.catalog.routers import (
     variants,
 )
 from app.modules.inventory.router import router as inventory_router
+from app.modules.inventory.router import stock_router
 
 
 app = FastAPI(
@@ -19,6 +20,7 @@ app.include_router(categories.router)
 app.include_router(brands.router)
 app.include_router(variants.router)
 app.include_router(inventory_router)
+app.include_router(stock_router)
 app.include_router(carts.router)
 app.include_router(orders.router)
 

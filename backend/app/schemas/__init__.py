@@ -20,8 +20,9 @@ from app.modules.catalog.schemas.variant import (
     ProductVariantCreate,
     ProductVariantUpdate,
     ProductVariantResponse,
-    StockAdjustment,
 )
+
+from app.modules.inventory.schemas.stock import StockAdjustment
 
 from app.schemas.cart import (
     CartItemResponse,
