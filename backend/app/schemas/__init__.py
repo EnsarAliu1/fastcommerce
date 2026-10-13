@@ -1,26 +1,26 @@
-from app.schemas.product import (
+from app.modules.catalog.schemas.product import (
     ProductCreate,
     ProductUpdate,
     ProductResponse,
 )
 
-from app.schemas.category import (
+from app.modules.catalog.schemas.category import (
     CategoryCreate,
     CategoryUpdate,
     CategoryResponse,
 )
 
-from app.schemas.brand import (
+from app.modules.catalog.schemas.brand import (
     BrandCreate,
     BrandUpdate,
     BrandResponse,
 )
 
-from app.schemas.variant import (
+from app.modules.catalog.schemas.variant import (
     ProductVariantCreate,
     ProductVariantUpdate,
     ProductVariantResponse,
-    StockAdjustment
+    StockAdjustment,
 )
 
 from app.schemas.cart import (

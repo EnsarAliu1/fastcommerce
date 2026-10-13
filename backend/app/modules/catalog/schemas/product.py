@@ -3,9 +3,9 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.schemas.brand import BrandResponse
-from app.schemas.category import CategoryResponse
-from app.schemas.variant import ProductVariantResponse
+from .brand import BrandResponse
+from .category import CategoryResponse
+from .variant import ProductVariantResponse
 
 
 class ProductCreate(BaseModel):
