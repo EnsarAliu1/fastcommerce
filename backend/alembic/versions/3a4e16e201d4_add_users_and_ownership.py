@@ -57,7 +57,7 @@ def downgrade() -> None:
     # WARNING: constraint name is None; this directive will fail as
     # rendered.  Add a name, or use a naming convention; see
     # https://alembic.sqlalchemy.org/en/latest/naming.html
-    op.drop_constraint("fk_orders_user_id_users", 'cart', type_='foreignkey')
+    op.drop_constraint("fk_cart_user_id_users", 'cart', type_='foreignkey')
     op.drop_index(op.f('ix_cart_user_id'), table_name='cart')
     op.drop_column('cart', 'user_id')
     op.drop_index(op.f('ix_users_id'), table_name='users')
