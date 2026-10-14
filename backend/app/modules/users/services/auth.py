@@ -1,12 +1,12 @@
-from sqlalchemy.orm import query
 from app import models
-from app.modules.users.schemas.auth import LoginRequset
+from app.modules.users.schemas.auth import LoginRequest
 from fastapi import HTTPException
 from app.modules.users.services.users import password_hash
 from app.core.security import create_access_token
+from sqlalchemy.orm import Session
 
 
-def login_user(data: LoginRequset, db):
+def login_user(data: LoginRequest, db: Session):
     user = db.query(models.User).filter(
         models.User.email == data.email
     ).first()
