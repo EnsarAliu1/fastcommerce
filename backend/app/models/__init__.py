@@ -7,4 +7,4 @@ from app.modules.carts.models.cart import Cart
 from app.modules.carts.models.cart_item import CartItem
 from app.modules.orders.models.order import Order
 from app.modules.orders.models.order_item import OrderItem
-from app.models.user import User
+from app.modules.users.models.user import User

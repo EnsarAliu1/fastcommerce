@@ -1,8 +1,7 @@
 from app.db.base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, DateTime, func, Enum
+from sqlalchemy import String, DateTime, func
 from datetime import datetime
-from pwdlib import PasswordHash
 
 
 class User(Base):
