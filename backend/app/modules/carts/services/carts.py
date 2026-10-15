@@ -10,9 +10,10 @@ from decimal import Decimal
 
 
 def create_cart(
+        user_id: int,
         db: Session
 ):
-    cart = models.Cart(status="active")
+    cart = models.Cart(status="active", user_id=user_id)
     db.add(cart)
     db.commit()
     db.refresh(cart)
@@ -22,6 +23,7 @@ def create_cart(
 
 def get_cart_or_404(
         cart_id: int,
+        user_id: int,
         db: Session
 ):
     cart = db.get(
@@ -29,7 +31,7 @@ def get_cart_or_404(
         cart_id
     )
 
-    if not cart:
+    if cart is None or cart.user_id != user_id:
         raise HTTPException(
             status_code=404,
             detail="Cart not found"
@@ -40,13 +42,14 @@ def get_cart_or_404(
 
 def add_item_to_cart(
         cart_id: int,
+        user_id: int,
         db: Session,
         variant_id: int,
         quantity: int
 ):
     cart = get_cart_or_404(cart_id, db)
 
-    if cart.status != "active":
+    if cart.status != "active" or cart.user_id != user_id:
         raise HTTPException(
             status_code=409,
             detail="Cart is not active"
@@ -102,12 +105,13 @@ def add_item_to_cart(
 def update_cart_item_quantity(
         cart_id: int,
         item_id: int,
+        user_id: int,
         quantity: int,
         db: Session
 ):
     cart = get_cart_or_404(cart_id, db)
 
-    if cart.status != "active":
+    if cart.status != "active" or cart.user_id != user_id:
         raise HTTPException(
             status_code=409,
             detail="Cart is not active"
@@ -142,11 +146,12 @@ def update_cart_item_quantity(
 def remove_cart_item(
         cart_id: int,
         item_id: int,
+        user_id: int,
         db: Session
 ):
     cart = get_cart_or_404(cart_id, db)
 
-    if cart.status != "active":
+    if cart.status != "active" or cart.user_id != user_id:
         raise HTTPException(
             status_code=409,
             detail="Cart item is not active"
@@ -172,6 +177,7 @@ def remove_cart_item(
 
 def checkout_cart(
     cart_id: int,
+    user_id: int,
     db: Session
 ):
     cart = get_cart_or_404(
@@ -179,7 +185,7 @@ def checkout_cart(
         db
     )
 
-    if cart.status != "active":
+    if cart.status != "active" or cart.user_id != user_id:
         raise HTTPException(
             status_code=409,
             detail="Cart is not active"

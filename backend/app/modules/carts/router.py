@@ -5,6 +5,8 @@ from app.modules.carts.schemas.cart import CartItemCreate, CartItemQuantityUpdat
 from app.modules.orders.schemas.order import OrderResponse
 
 from app.modules.carts.services import carts as carts_service
+from app import models
+from app.modules.users.dependencies import get_current_user
 
 
 router = APIRouter(
@@ -19,9 +21,13 @@ router = APIRouter(
     response_model=CartResponse
 )
 def create_cart(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    return carts_service.create_cart(db)
+    return carts_service.create_cart(
+        user_id=current_user.id,
+        db=db
+    )
 
 
 @router.get(
@@ -30,9 +36,14 @@ def create_cart(
 )
 def get_cart(
     cart_id: int,
-    db: Session = Depends(get_db)
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
-    return carts_service.get_cart_or_404(cart_id, db)
+    return carts_service.get_cart_or_404(
+        cart_id=cart_id,
+        user_id=current_user.id,
+        db=db,
+    )
 
 
 @router.post(
@@ -43,10 +54,12 @@ def get_cart(
 def add_item(
     cart_id: int,
     data: CartItemCreate,
+    current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     return carts_service.add_item_to_cart(
         cart_id=cart_id,
+        user_id=current_user.id,
         db=db,
         variant_id=data.variant_id,
         quantity=data.quantity
@@ -61,13 +74,15 @@ def edit_item(
         cart_id: int,
         item_id: int,
         data: CartItemQuantityUpdate,
+        current_user: models.User = Depends(get_current_user),
         db: Session = Depends(get_db)
 ):
     return carts_service.update_cart_item_quantity(
-        cart_id,
-        item_id,
-        data.quantity,
-        db
+        cart_id=cart_id,
+        item_id=item_id,
+        user_id=current_user.id,
+        quantity=data.quantity,
+        db=db
     )
 
 
@@ -78,21 +93,25 @@ def edit_item(
 def delete_item(
     cart_id: int,
     item_id: int,
+    current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     carts_service.remove_cart_item(
-        cart_id,
-        item_id,
-        db
+        cart_id=cart_id,
+        item_id=item_id,
+        user_id=current_user.id,
+        db=db,
     )
 
 
 @router.post("/{cart_id}/checkout", response_model=OrderResponse)
 def checkout_cart(
     cart_id: int,
+    current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     return carts_service.checkout_cart(
-        cart_id,
-        db
+        cart_id=cart_id,
+        user_id=current_user.id,
+        db=db
     )
