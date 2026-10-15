@@ -6,6 +6,7 @@ from sqlalchemy import update, select
 
 def get_order_or_404(
     order_id: int,
+    user_id: int,
     db: Session
 ):
     order = db.get(
@@ -13,7 +14,7 @@ def get_order_or_404(
         order_id
     )
 
-    if not order:
+    if not order or order.user_id != user_id:
         raise HTTPException(
             status_code=404,
             detail="Order not found"
@@ -24,9 +25,14 @@ def get_order_or_404(
 
 def mark_order_paid(
         order_id: int,
+        user_id: int,
         db: Session
 ):
-    order = get_order_or_404(order_id, db)
+    order = get_order_or_404(
+        order_id=order_id,
+        user_id=user_id,
+        db=db
+    )
 
     if order.status != "pending":
         raise HTTPException(
@@ -52,11 +58,13 @@ def mark_order_paid(
 
 def cancel_order(
         order_id: int,
+        user_id: int,
         db: Session
 ):
     order = get_order_or_404(
-        order_id,
-        db
+        order_id=order_id,
+        user_id=user_id,
+        db=db
     )
 
     if order.status != "pending":
@@ -97,6 +105,7 @@ def cancel_order(
 
 
 def get_orders(
+    user_id: int,
     db: Session,
     skip: int,
     limit: int
@@ -107,6 +116,7 @@ def get_orders(
             selectinload(models.Order.items)
         )
         .order_by(models.Order.id.desc())
+        .where(models.Order.user_id == user_id)
         .offset(skip)
         .limit(limit)
     )
