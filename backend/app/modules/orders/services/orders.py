@@ -86,17 +86,11 @@ def cancel_order(
         user_id: int,
         db: Session
 ):
-    order = get_order_or_404(
+    order = get_pending_order_for_update(
         order_id=order_id,
         user_id=user_id,
         db=db
     )
-
-    if order.status != "pending":
-        raise HTTPException(
-            status_code=409,
-            detail="Order is not pending"
-        )
 
     reservations = db.query(models.StockReservation).filter(
         models.StockReservation.order_id == order_id,
