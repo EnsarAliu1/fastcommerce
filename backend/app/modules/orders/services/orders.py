@@ -23,22 +23,47 @@ def get_order_or_404(
     return order
 
 
-def mark_order_paid(
+def get_pending_order_for_update(
         order_id: int,
         user_id: int,
         db: Session
 ):
-    order = get_order_or_404(
-        order_id=order_id,
-        user_id=user_id,
-        db=db
+    statement = (
+        select(models.Order)
+        .where(
+            models.Order.id == order_id,
+            models.Order.user_id == user_id
+        )
+        .with_for_update()
     )
+
+    order = db.scalar(statement)
+
+    if not order:
+        raise HTTPException(
+            status_code=404,
+            detail="Order not found"
+        )
 
     if order.status != "pending":
         raise HTTPException(
             status_code=409,
             detail="Order is not pending"
         )
+
+    return order
+
+
+def mark_order_paid(
+        order_id: int,
+        user_id: int,
+        db: Session
+):
+    order = get_pending_order_for_update(
+        order_id=order_id,
+        user_id=user_id,
+        db=db
+    )
 
     reservations = db.query(models.StockReservation).filter(
         models.StockReservation.order_id == order_id,
