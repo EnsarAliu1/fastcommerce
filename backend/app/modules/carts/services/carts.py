@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import update
+from sqlalchemy import update, select
 
 from datetime import datetime, timedelta, timezone
 
@@ -192,11 +192,23 @@ def checkout_cart(
     user_id: int,
     db: Session
 ):
-    cart = get_cart_or_404(
-        cart_id=cart_id,
-        user_id=user_id,
-        db=db
+
+    statement = (
+        select(models.Cart)
+        .where(
+            models.Cart.id == cart_id,
+            models.Cart.user_id == user_id
+        )
+        .with_for_update()
     )
+
+    cart = db.scalar(statement)
+
+    if not cart:
+        raise HTTPException(
+            status_code=404,
+            detail="Cart not found"
+        )
 
     if cart.status != "active":
         raise HTTPException(
