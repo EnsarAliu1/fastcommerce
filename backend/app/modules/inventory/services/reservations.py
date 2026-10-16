@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import update
+from sqlalchemy import update, select
 
 from datetime import datetime, timezone, timedelta
 
@@ -28,20 +28,49 @@ def get_reservation_or_404(
     return reservation
 
 
-def release_reservation(
+def get_active_reservation_for_update(
         reservation_id: int,
         db: Session
 ):
-    reservation = get_reservation_or_404(
-        reservation_id,
-        db
+    statement = (
+        select(models.StockReservation)
+        .where(
+            models.StockReservation.id == reservation_id
+        )
+        .with_for_update()
     )
+
+    reservation = db.scalar(statement)
+
+    if not reservation:
+        raise HTTPException(
+            status_code=404,
+            detail="Reservation not found"
+        )
 
     if reservation.status != "active":
         raise HTTPException(
             status_code=409,
-            detail="Reservation is not active"
+            detail="Reservation not active"
         )
+
+    if reservation.order_id is not None:
+        raise HTTPException(
+            status_code=409,
+            detail="Order-linked reservations cannot be modified directly"
+        )
+
+    return reservation
+
+
+def release_reservation(
+        reservation_id: int,
+        db: Session
+):
+    reservation = get_active_reservation_for_update(
+        reservation_id=reservation_id,
+        db=db
+    )
 
     statement = (
         update(models.ProductVariant)
@@ -130,16 +159,10 @@ def consume_reservation(
     reservation_id: int,
     db: Session
 ):
-    reservation = get_reservation_or_404(
-        reservation_id,
-        db
+    reservation = get_active_reservation_for_update(
+        reservation_id=reservation_id,
+        db=db
     )
-
-    if reservation.status != "active":
-        raise HTTPException(
-            status_code=409,
-            detail="Reservation is not active"
-        )
 
     reservation.status = "consumed"
 
@@ -153,16 +176,10 @@ def expire_reservation(
     reservation_id: int,
     db: Session
 ):
-    reservation = get_reservation_or_404(
-        reservation_id,
-        db
+    reservation = get_active_reservation_for_update(
+        reservation_id=reservation_id,
+        db=db
     )
-
-    if reservation.status != "active":
-        raise HTTPException(
-            status_code=409,
-            detail="Reservation is not active"
-        )
 
     if reservation.expires_at > datetime.now(timezone.utc):
         raise HTTPException(
