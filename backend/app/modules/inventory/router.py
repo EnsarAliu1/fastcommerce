@@ -7,16 +7,19 @@ from app.modules.inventory.schemas.stock import StockAdjustment
 from app.modules.inventory.services import stock as stock_service
 from app.modules.inventory.schemas.reservation import StockReservationCreate, StockReservationResponse
 from app.modules.inventory.services import reservations as reservation_service
+from app.modules.users.dependencies import get_current_admin
 
 
 router = APIRouter(
     prefix="/reservations",
-    tags=["Reservations"]
+    tags=["Reservations"],
+    dependencies=[Depends(get_current_admin)]
 )
 
 stock_router = APIRouter(
     prefix="/variants",
-    tags=["Stock"]
+    tags=["Stock"],
+    dependencies=[Depends(get_current_admin)]
 )
 
 

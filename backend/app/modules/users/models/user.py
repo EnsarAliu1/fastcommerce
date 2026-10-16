@@ -33,6 +33,12 @@ class User(Base):
         nullable=False
     )
 
+    is_admin: Mapped[bool] = mapped_column(
+        default=True,
+        server_default="false",
+        nullable=False
+    )
+
     carts: Mapped[list["Cart"]] = relationship(
         back_populates="user"
     )
