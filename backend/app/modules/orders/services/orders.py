@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session, selectinload
 from app import models
 from fastapi import HTTPException
 from sqlalchemy import update, select
+from datetime import datetime, timezone
 
 
 def get_order_or_404(
@@ -51,6 +52,66 @@ def get_pending_order_for_update(
             detail="Order is not pending"
         )
 
+    return order
+
+
+def expire_order(
+        order_id: int,
+        db: Session
+):
+    statement = (
+        select(models.Order)
+        .where(models.Order.id == order_id)
+        .with_for_update()
+    )
+
+    order = db.scalar(statement)
+
+    if not order:
+        raise HTTPException(
+            status_code=404,
+            detail="Order not found"
+        )
+
+    if order.status != "pending":
+        raise HTTPException(
+            status_code=409,
+            detail="Order is not pending"
+        )
+
+    reservations = db.query(models.StockReservation).filter(
+        models.StockReservation.status == "active",
+        models.StockReservation.order_id == order_id
+    ).all()
+
+    now = datetime.now(timezone.utc)
+
+    if not reservations or all(
+        res.expires_at > now for res in reservations
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail="Order is not expired",
+        )
+
+    for res in reservations:
+        statement = (
+            update(models.ProductVariant)
+            .where(models.ProductVariant.id == res.variant_id)
+            .values(
+                stock_quantity=(
+                    models.ProductVariant.stock_quantity + res.quantity
+                )
+            )
+        )
+
+        db.execute(statement)
+        res.status = "expired"
+
+    order.status = "cancelled"
+
+    db.commit()
+    db.refresh(order)
     return order
 
 
