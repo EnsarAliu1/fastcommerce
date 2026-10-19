@@ -131,8 +131,18 @@ def mark_order_paid(
         models.StockReservation.status == "active"
     ).all()
 
-    for reservation in reservations:
-        reservation.status = "consumed"
+    now = datetime.now(timezone.utc)
+
+    if not reservations or any(
+        res.expires_at <= now for res in reservations
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail="No active reservations or reservation expired"
+        )
+
+    for res in reservations:
+        res.status = "consumed"
 
     order.status = "paid"
 
