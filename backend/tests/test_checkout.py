@@ -1,74 +1,10 @@
 from decimal import Decimal
-from uuid import uuid4
 
 import pytest
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import (
-    Brand, Cart, CartItem, Category, Order, OrderItem,
-    Product, ProductVariant, StockReservation,
-)
-from conftest import assert_test_database
-
-
-@pytest.fixture
-def checkout_data(client, test_engine, user_a_headers):
-    me = client.get("/users/me", headers=user_a_headers)
-    assert me.status_code == 200, me.text
-    user_id = me.json()["id"]
-    unique = uuid4().hex
-
-    with Session(test_engine) as db:
-        assert_test_database(db.connection())
-        category = Category(name="Checkout category", slug=f"category-{unique}")
-        brand = Brand(name="Checkout brand", slug=f"brand-{unique}")
-        product = Product(
-            name="Checkout product", description="Isolated checkout test",
-            sku=f"product-{unique}", price=Decimal("25.00"),
-            category=category, brand=brand,
-        )
-        variant = ProductVariant(
-            product=product, sku=f"variant-{unique}",
-            price=Decimal("25.00"), stock_quantity=10,
-        )
-        cart = Cart(user_id=user_id, status="active")
-        item = CartItem(cart=cart, variant=variant, quantity=2)
-        db.add(item)
-        db.flush()
-        data = {
-            "user_id": user_id,
-            "category_id": category.id,
-            "brand_id": brand.id,
-            "product_id": product.id,
-            "variant_id": variant.id,
-            "cart_id": cart.id,
-            "headers": user_a_headers,
-        }
-        db.commit()
-
-    try:
-        yield data
-    finally:
-        # Find all orders for this unique user, including unexpected duplicates
-        # or orders committed before a failing API response/assertion.
-        with test_engine.begin() as connection:
-            assert_test_database(connection)
-            order_ids = select(Order.id).where(Order.user_id == user_id)
-            connection.execute(delete(StockReservation).where(
-                StockReservation.order_id.in_(order_ids)
-            ))
-            connection.execute(delete(OrderItem).where(
-                OrderItem.order_id.in_(order_ids)
-            ))
-            connection.execute(delete(Order).where(Order.user_id == user_id))
-            connection.execute(delete(CartItem).where(CartItem.cart_id == data["cart_id"]))
-            connection.execute(delete(Cart).where(Cart.id == data["cart_id"]))
-            connection.execute(delete(ProductVariant).where(ProductVariant.id == data["variant_id"]))
-            connection.execute(delete(Product).where(Product.id == data["product_id"]))
-            connection.execute(delete(Category).where(Category.id == data["category_id"]))
-            connection.execute(delete(Brand).where(Brand.id == data["brand_id"]))
-        # user_a_headers/user_data teardown removes the user after this fixture.
+from app.models import Cart, Order, OrderItem, ProductVariant, StockReservation
 
 
 @pytest.fixture
