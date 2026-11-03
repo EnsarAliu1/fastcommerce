@@ -97,11 +97,55 @@ def client(test_engine):
         app.dependency_overrides.update(previous_overrides)
 
 
-@pytest.fixture
-def user_data(test_engine):
+def _test_user_data(test_engine):
     data = {"email": f"auth-{uuid4().hex}@example.com", "password": "Test-password-123!"}
     yield data
-    # Real commits are allowed in the isolated DB; remove only this test's user.
+    # Real commits are allowed; remove only rows owned by this unique test user.
     with test_engine.begin() as connection:
         assert_test_database(connection)
+        connection.execute(
+            text(
+                "DELETE FROM cart_item WHERE cart_id IN "
+                "(SELECT id FROM cart WHERE user_id IN "
+                "(SELECT id FROM users WHERE email = :email))"
+            ),
+            {"email": data["email"]},
+        )
+        connection.execute(
+            text(
+                "DELETE FROM cart WHERE user_id IN "
+                "(SELECT id FROM users WHERE email = :email)"
+            ),
+            {"email": data["email"]},
+        )
         connection.execute(text("DELETE FROM users WHERE email = :email"), {"email": data["email"]})
+
+
+@pytest.fixture
+def user_data(test_engine):
+    yield from _test_user_data(test_engine)
+
+
+@pytest.fixture
+def other_user_data(test_engine):
+    yield from _test_user_data(test_engine)
+
+
+def register_and_login(client, data):
+    registration = client.post("/users/register", json=data)
+    assert registration.status_code == 201, registration.text
+    login = client.post("/users/login", json=data)
+    assert login.status_code == 200, login.text
+    token = login.json()
+    assert token["token_type"] == "bearer"
+    return {"Authorization": f"Bearer {token['access_token']}"}
+
+
+@pytest.fixture
+def user_a_headers(client, user_data):
+    return register_and_login(client, user_data)
+
+
+@pytest.fixture
+def user_b_headers(client, other_user_data):
+    return register_and_login(client, other_user_data)
