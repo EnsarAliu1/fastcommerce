@@ -1,0 +1,10 @@
+#Shto edhe .dockerignore që të mos kopjohen .venv, .env, .git dhe cache files në image.
+.venv
+.env
+.git
+*.pyc
+*.pyd
+.pytest_cache
+**/.pytest_cache
+__pycache__
+**/__pycache__
