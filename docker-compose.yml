@@ -20,6 +20,20 @@ services:
       retries: 10
       start_period: 10s
 
+  migrate:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: "no"
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: ${DOCKER_DATABASE_URL}
+    command: python -m alembic upgrade head
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   api:
     build:
       context: ./backend
@@ -34,8 +48,8 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   expiration-worker:
     build:
@@ -49,8 +63,8 @@ services:
       DATABASE_URL: ${DOCKER_DATABASE_URL}
     command: python -m app.workers.order_expiration
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
 volumes:
   postgres_data:
