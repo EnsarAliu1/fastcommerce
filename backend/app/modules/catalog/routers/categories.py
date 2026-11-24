@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, HTTPException
 from app.services.db import commit_or_conflict
 from app.modules.catalog.services.categories import get_category_or_404
+from app.modules.users.dependencies import get_current_admin
+
 
 router = APIRouter(
     prefix="/categories",
@@ -12,7 +14,7 @@ router = APIRouter(
 )
 
 
-@router.post("", status_code=201, response_model=CategoryResponse)
+@router.post("", status_code=201, response_model=CategoryResponse, dependencies=[Depends(get_current_admin)])
 def create_category(
     category: CategoryCreate,
     db: Session = Depends(get_db)
@@ -53,7 +55,7 @@ def get_category(
     return category
 
 
-@router.put("/{category_id}", response_model=CategoryResponse)
+@router.put("/{category_id}", response_model=CategoryResponse, dependencies=[Depends(get_current_admin)])
 def update_category(
     category_id: int,
     updated_category: CategoryCreate,
@@ -81,7 +83,7 @@ def update_category(
     return category
 
 
-@router.patch("/{category_id}", response_model=CategoryResponse)
+@router.patch("/{category_id}", response_model=CategoryResponse, dependencies=[Depends(get_current_admin)])
 def partial_update_category(
     category_id: int,
     updated_category: CategoryUpdate,
@@ -109,7 +111,7 @@ def partial_update_category(
     return category
 
 
-@router.delete("/{category_id}", status_code=204)
+@router.delete("/{category_id}", status_code=204, dependencies=[Depends(get_current_admin)])
 def delete_category(
     category_id: int,
     db: Session = Depends(get_db)

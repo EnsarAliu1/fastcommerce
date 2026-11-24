@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, HTTPException
 from app.services.db import commit_or_conflict
 from app.modules.catalog.services.brands import get_brand_or_404
+from app.modules.users.dependencies import get_current_admin
 
 
 router = APIRouter(
@@ -13,7 +14,7 @@ router = APIRouter(
 )
 
 
-@router.post("", status_code=201, response_model=BrandResponse)
+@router.post("", status_code=201, response_model=BrandResponse, dependencies=[Depends(get_current_admin)])
 def create_brand(
     brand: BrandCreate,
     db: Session = Depends(get_db)
@@ -54,7 +55,7 @@ def get_brand(
     return brand
 
 
-@router.put("/{brand_id}", response_model=BrandResponse)
+@router.put("/{brand_id}", response_model=BrandResponse, dependencies=[Depends(get_current_admin)])
 def update_brand(
     brand_id: int,
     updated_brand: BrandCreate,
@@ -82,7 +83,7 @@ def update_brand(
     return brand
 
 
-@router.patch("/{brand_id}", response_model=BrandResponse)
+@router.patch("/{brand_id}", response_model=BrandResponse, dependencies=[Depends(get_current_admin)])
 def partial_update_brand(
     brand_id: int,
     updated_brand: BrandUpdate,
@@ -110,7 +111,7 @@ def partial_update_brand(
     return brand
 
 
-@router.delete("/{brand_id}", status_code=204)
+@router.delete("/{brand_id}", status_code=204, dependencies=[Depends(get_current_admin)])
 def delete_brand(
     brand_id: int,
     db: Session = Depends(get_db)

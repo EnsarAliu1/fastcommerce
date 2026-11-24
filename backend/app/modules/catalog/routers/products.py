@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from app.modules.catalog.services.categories import get_category_or_404
 from app.modules.catalog.services.brands import get_brand_or_404
 from app.services.db import commit_or_conflict
+from app.modules.users.dependencies import get_current_admin
 
 
 router = APIRouter(
@@ -16,7 +17,7 @@ router = APIRouter(
 )
 
 
-@router.post("/", status_code=201, response_model=ProductResponse)
+@router.post("/", status_code=201, response_model=ProductResponse, dependencies=[Depends(get_current_admin)])
 def create_product(
     product: ProductCreate,
     db: Session = Depends(get_db)
@@ -82,7 +83,7 @@ def get_product(
     return product
 
 
-@router.put("/{product_id}", response_model=ProductResponse)
+@router.put("/{product_id}", response_model=ProductResponse, dependencies=[Depends(get_current_admin)])
 def update_product(
     product_id: int,
     updated_product: ProductCreate,
@@ -114,7 +115,7 @@ def update_product(
     return product
 
 
-@router.patch("/{product_id}", response_model=ProductResponse)
+@router.patch("/{product_id}", response_model=ProductResponse, dependencies=[Depends(get_current_admin)])
 def partial_update_product(
     product_id: int,
     updated_product: ProductUpdate,
@@ -154,7 +155,7 @@ def partial_update_product(
     return product
 
 
-@router.delete("/{product_id}", status_code=204)
+@router.delete("/{product_id}", status_code=204, dependencies=[Depends(get_current_admin)])
 def delete_product(
     product_id: int,
     db: Session = Depends(get_db)

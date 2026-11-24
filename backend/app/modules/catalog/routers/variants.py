@@ -6,6 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from app.modules.catalog.services.products import get_product_or_404
 from app.services.db import commit_or_conflict
+from app.modules.users.dependencies import get_current_admin
+
 
 router = APIRouter(
     prefix="/variants",
@@ -13,7 +15,7 @@ router = APIRouter(
 )
 
 
-@router.post("/", status_code=201, response_model=ProductVariantResponse)
+@router.post("/", status_code=201, response_model=ProductVariantResponse, dependencies=[Depends(get_current_admin)])
 def create_variant(
     variant: ProductVariantCreate,
     db: Session = Depends(get_db)
@@ -65,7 +67,7 @@ def get_variant(
     return variant
 
 
-@router.put("/{variant_id}", response_model=ProductVariantResponse)
+@router.put("/{variant_id}", response_model=ProductVariantResponse, dependencies=[Depends(get_current_admin)])
 def update_variant(
     variant_id: int,
     updated_variant: ProductVariantCreate,
@@ -95,7 +97,7 @@ def update_variant(
     return variant
 
 
-@router.patch("/{variant_id}", response_model=ProductVariantResponse)
+@router.patch("/{variant_id}", response_model=ProductVariantResponse, dependencies=[Depends(get_current_admin)])
 def partial_update_variant(
     variant_id: int,
     updated_variant: ProductVariantUpdate,
@@ -129,7 +131,7 @@ def partial_update_variant(
     return variant
 
 
-@router.delete("/{variant_id}", status_code=204)
+@router.delete("/{variant_id}", status_code=204, dependencies=[Depends(get_current_admin)])
 def delete_variant(
     variant_id: int,
     db: Session = Depends(get_db)
