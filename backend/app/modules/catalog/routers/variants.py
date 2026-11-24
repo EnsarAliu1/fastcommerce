@@ -1,4 +1,9 @@
-from app.schemas import ProductVariantResponse, ProductVariantCreate, ProductVariantUpdate
+from app.schemas import (
+    ProductVariantResponse,
+    ProductVariantCreate,
+    ProductVariantReplace,
+    ProductVariantUpdate,
+)
 from app.db.session import get_db
 from app import models
 from sqlalchemy.orm import Session
@@ -70,7 +75,7 @@ def get_variant(
 @router.put("/{variant_id}", response_model=ProductVariantResponse, dependencies=[Depends(get_current_admin)])
 def update_variant(
     variant_id: int,
-    updated_variant: ProductVariantCreate,
+    updated_variant: ProductVariantReplace,
     db: Session = Depends(get_db)
 ):
     variant = db.query(models.ProductVariant).filter(

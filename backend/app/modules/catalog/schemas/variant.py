@@ -4,7 +4,9 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
-class ProductVariantCreate(BaseModel):
+class ProductVariantReplace(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     product_id: int
 
     sku: str = Field(
@@ -14,11 +16,6 @@ class ProductVariantCreate(BaseModel):
 
     price: Decimal = Field(
         gt=0
-    )
-
-    stock_quantity: int = Field(
-        default=0,
-        ge=0
     )
 
     size: str | None = Field(
@@ -47,7 +44,16 @@ class ProductVariantCreate(BaseModel):
         return value
 
 
+class ProductVariantCreate(ProductVariantReplace):
+    stock_quantity: int = Field(
+        default=0,
+        ge=0
+    )
+
+
 class ProductVariantUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     product_id: int | None = None
 
     sku: str | None = Field(
@@ -59,11 +65,6 @@ class ProductVariantUpdate(BaseModel):
     price: Decimal | None = Field(
         default=None,
         gt=0
-    )
-
-    stock_quantity: int | None = Field(
-        default=None,
-        ge=0
     )
 
     size: str | None = Field(

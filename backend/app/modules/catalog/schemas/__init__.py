@@ -3,6 +3,7 @@ from .category import CategoryCreate, CategoryResponse, CategoryUpdate
 from .product import ProductCreate, ProductResponse, ProductUpdate
 from .variant import (
     ProductVariantCreate,
+    ProductVariantReplace,
     ProductVariantResponse,
     ProductVariantUpdate,
 )
@@ -18,6 +19,7 @@ __all__ = [
     "ProductResponse",
     "ProductUpdate",
     "ProductVariantCreate",
+    "ProductVariantReplace",
     "ProductVariantResponse",
     "ProductVariantUpdate",
 ]

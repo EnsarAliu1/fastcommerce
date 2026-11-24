@@ -18,6 +18,7 @@ from app.modules.catalog.schemas.brand import (
 
 from app.modules.catalog.schemas.variant import (
     ProductVariantCreate,
+    ProductVariantReplace,
     ProductVariantUpdate,
     ProductVariantResponse,
 )
