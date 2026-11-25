@@ -19,7 +19,7 @@ WRITE_METHODS = ("POST", "PUT", "PATCH", "DELETE")
 @pytest.fixture
 def admin_headers(client, test_engine, other_user_data):
     # Register through the public API; promotion happens only in the test DB.
-    from app.models import User
+    from app.models import StockMovement, User
 
     response = client.post("/users/register", json=other_user_data)
     assert response.status_code == 201, response.text
@@ -35,12 +35,18 @@ def admin_headers(client, test_engine, other_user_data):
     response = client.post("/users/login", json=other_user_data)
     assert response.status_code == 200, response.text
     assert response.json()["token_type"] == "bearer"
-    return {"Authorization": f"Bearer {response.json()['access_token']}"}
+    try:
+        yield {"Authorization": f"Bearer {response.json()['access_token']}"}
+    finally:
+        # Remove audit references before other_user_data deletes this admin.
+        with test_engine.begin() as connection:
+            assert_test_database(connection)
+            connection.execute(delete(StockMovement).where(StockMovement.admin_id == user_id))
 
 
 @pytest.fixture(params=RESOURCES)
 def catalog_resource(request, test_engine):
-    from app.models import Brand, Category, Product, ProductVariant
+    from app.models import Brand, Category, Product, ProductVariant, StockMovement
 
     resource = request.param
     marker = f"catalog-auth-{uuid4().hex}"
@@ -130,6 +136,12 @@ def catalog_resource(request, test_engine):
         with test_engine.begin() as connection:
             assert_test_database(connection)
             product_ids = select(Product.id).where(Product.description == marker)
+            variant_ids = select(ProductVariant.id).where(
+                ProductVariant.product_id.in_(product_ids)
+            )
+            connection.execute(delete(StockMovement).where(
+                StockMovement.variant_id.in_(variant_ids)
+            ))
             connection.execute(delete(ProductVariant).where(
                 ProductVariant.product_id.in_(product_ids)
             ))
@@ -302,7 +314,8 @@ def test_admin_can_adjust_stock_through_inventory(
 
     response = client.post(
         f"{catalog_resource['detail']}/{operation}",
-        json={"quantity": abs(delta)}, headers=admin_headers,
+        json={"quantity": abs(delta), "reason": "Catalog authorization test"},
+        headers=admin_headers,
     )
 
     assert response.status_code == 200, response.text
@@ -325,7 +338,7 @@ def test_inventory_stock_adjustments_require_admin(
 
     response = client.post(
         f"{catalog_resource['detail']}/{operation}",
-        json={"quantity": 4}, headers=headers,
+        json={"quantity": 4, "reason": "Catalog authorization test"}, headers=headers,
     )
 
     assert response.status_code == expected_status, response.text

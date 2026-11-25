@@ -8,3 +8,4 @@ from app.modules.carts.models.cart_item import CartItem
 from app.modules.orders.models.order import Order
 from app.modules.orders.models.order_item import OrderItem
 from app.modules.users.models.user import User
+from app.modules.inventory.models.stock_movement import StockMovement
